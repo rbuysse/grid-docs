@@ -15,3 +15,4 @@
 #jekyll stuff
 .jekyll-cache/
 _site/
+database

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-rm -rf /output
+rm -rf /output/*
 
 until PGPASSWORD=$PASSWORD psql -h $HOST -d $DATABASE -U $USER -c '\q'; do
   >&2 echo "Database is unavailable - sleeping"

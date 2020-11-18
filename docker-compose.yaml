@@ -3,11 +3,6 @@
 # https://creativecommons.org/licenses/by/4.0/
 version: "2.1"
 
-volumes:
-  contracts:
-  db_console:
-  gridd:
-
 services:
   grid-docs-jekyll:
     build:
@@ -55,22 +50,22 @@ services:
     volumes:
       - .:/project
 
-  griddb-console-builder:
-    image: griddb-console-builder
+  grid-docs-schemaspy:
+    container_name: grid-docs-schemaspy
+    image: grid-docs-schemaspy
+    build:
+      context: .
+      dockerfile: docker/schemaspy/Dockerfile
     environment:
       HOST: db
       PORT: 5432
       DATABASE: grid
       USER: grid
       PASSWORD: grid_example
-    build:
-      context: .
-      dockerfile: docker/schemaspy/Dockerfile
-    volumes:
-      - db_console:/output
-    container_name: griddb-console-builder
     depends_on:
       - db
+    volumes:
+      - ./db:/output
 
   db:
     image: postgres
@@ -84,34 +79,34 @@ services:
       POSTGRES_PASSWORD: grid_example
       POSTGRES_DB: grid
 
-  gridd:
-    image: hyperledger/gridd:nightly
-    container_name: gridd
-    hostname: gridd
-    volumes:
-      - contracts:/usr/share/scar
-      - gridd:/etc/grid/keys
-    expose:
-      - 8080
-    ports:
-      - "8088:8080"
-    environment:
-      GRID_DAEMON_KEY: "alpha-agent"
-      GRID_DAEMON_ENDPOINT: "http://gridd:8088"
-    entrypoint: |
-      bash -c "
-        # we need to wait for the db to have started.
-        until PGPASSWORD=grid_example psql -h db -U grid -c '\q' > /dev/null 2>&1; do
-            >&2 echo \"Database is unavailable - sleeping\"
-            sleep 1
-        done
-        # grid -vv admin keygen --skip && \
-        grid -vv database migrate \
-            --database-url postgres://grid:grid_example@db/grid
-        # gridd -vv -b 0.0.0.0:8088 -C splinter:http://splinterd:8085 \
-        #     --database-url postgres://grid:grid_example@db/grid
-        # java -jar schemaspy/schemaSpy.jar \
-        #   -t pgsql11 -host $HOST -port $PORT \
-        #   -db $DATABASE -u $USER -p $PASSWORD -o /output \
-        #   -dp /org/schemaspy/drivers/postgresql-42.1.1.jre7.jar
-      "
+  # gridd:
+  #   image: hyperledger/gridd:nightly
+  #   container_name: gridd
+  #   hostname: gridd
+  #   volumes:
+  #     - contracts:/usr/share/scar
+  #     - gridd:/etc/grid/keys
+  #   expose:
+  #     - 8080
+  #   ports:
+  #     - "8088:8080"
+  #   environment:
+  #     GRID_DAEMON_KEY: "alpha-agent"
+  #     GRID_DAEMON_ENDPOINT: "http://gridd:8088"
+  #   entrypoint: |
+  #     bash -c "
+  #       # we need to wait for the db to have started.
+  #       until PGPASSWORD=grid_example psql -h db -U grid -c '\q' > /dev/null 2>&1; do
+  #           >&2 echo \"Database is unavailable - sleeping\"
+  #           sleep 1
+  #       done
+  #       # grid -vv admin keygen --skip && \
+  #       grid -vv database migrate \
+  #           --database-url postgres://grid:grid_example@db/grid
+  #       # gridd -vv -b 0.0.0.0:8088 -C splinter:http://splinterd:8085 \
+  #       #     --database-url postgres://grid:grid_example@db/grid
+  #       # java -jar schemaspy/schemaSpy.jar \
+  #       #   -t pgsql11 -host $HOST -port $PORT \
+  #       #   -db $DATABASE -u $USER -p $PASSWORD -o /output \
+  #       #   -dp /org/schemaspy/drivers/postgresql-42.1.1.jre7.jar
+  #     "
